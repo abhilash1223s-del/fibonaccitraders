@@ -1,62 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Trading Journal App</title>
-  <style>
-    body { font-family: Arial; background: #f4f4f4; margin: 20px; }
-    h1 { text-align: center; }
-    .container { max-width: 900px; margin: auto; }
-    .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
-    th { background: #222; color: white; }
-    input, select { padding: 8px; width: 100%; margin-bottom: 10px; }
-    .btn { padding: 10px; background: #222; color: white; border: none; cursor: pointer; width: 100%; }
-    .btn:hover { background: #444; }
-    .delete-btn { background: red; padding: 6px; color: white; border: none; cursor: pointer; }
-  </style>
+  <title>Trading Journal</title>
 </head>
-<body>
+<body style="font-family: Arial; background:#f4f4f4; margin:20px;">
 
-<h1>Trading Journal</h1>
+<h1 style="text-align:center;">Trading Journal</h1>
 
-<div class="container">
+<div style="max-width:1000px; margin:auto;">
 
-  <!-- Add Trade Form -->
-  <div class="card">
+  <!-- Add Trade -->
+  <div style="background:white; padding:20px; border-radius:10px; margin-bottom:20px;">
     <h2>Add Trade</h2>
-    <input id="date" type="date">
-    <input id="symbol" placeholder="Symbol (e.g., NIFTY 25200CE)">
-    <input id="entry" placeholder="Entry Price">
-    <input id="exit" placeholder="Exit Price">
-    <input id="sl" placeholder="Stop Loss">
-    <select id="result">
-      <option value="Open">Open</option>
-      <option value="Win">Win</option>
-      <option value="Loss">Loss</option>
-    </select>
-    <input id="emotion" placeholder="Emotion (e.g., Fear, Confidence)">
-    <input id="notes" placeholder="Notes">
-    <button class="btn" onclick="addTrade()">Add Trade</button>
+
+    <input id="trade" placeholder="Trade (Example: NIFTY 25200CE)" 
+           style="padding:10px; width:100%; margin-bottom:10px;">
+
+    <input id="buy" placeholder="Buy Price" 
+           style="padding:10px; width:100%; margin-bottom:10px;">
+
+    <input id="sell" placeholder="Sell Price" 
+           style="padding:10px; width:100%; margin-bottom:10px;">
+
+    <input id="pointsGained" placeholder="Points Gained" 
+           style="padding:10px; width:100%; margin-bottom:10px;">
+
+    <input id="pointsLost" placeholder="Points Lost" 
+           style="padding:10px; width:100%; margin-bottom:10px;">
+
+    <input id="lots" placeholder="Lot Size" 
+           style="padding:10px; width:100%; margin-bottom:10px;">
+
+    <input id="profit" placeholder="Profit (₹)" 
+           style="padding:10px; width:100%; margin-bottom:10px;">
+
+    <input id="loss" placeholder="Loss (₹)" 
+           style="padding:10px; width:100%; margin-bottom:10px;">
+
+    <input id="brokerage" placeholder="Brokerage (₹)" 
+           style="padding:10px; width:100%; margin-bottom:10px;">
+
+    <input id="reason" placeholder="Why you took this trade?" 
+           style="padding:10px; width:100%; margin-bottom:10px;">
+
+    <button onclick="addTrade()" 
+            style="padding:12px; width:100%; background:black; color:white; border:none; cursor:pointer;">
+      Add Trade
+    </button>
   </div>
 
   <!-- Trade Table -->
-  <div class="card">
+  <div style="background:white; padding:20px; border-radius:10px;">
     <h2>Trades</h2>
-    <table id="tradeTable">
+    <table id="tradeTable" 
+           style="width:100%; border-collapse:collapse; font-size:14px;">
+      
       <thead>
-        <tr>
-          <th>Date</th>
-          <th>Symbol</th>
-          <th>Entry</th>
-          <th>Exit</th>
-          <th>SL</th>
-          <th>Result</th>
-          <th>Emotion</th>
-          <th>Notes</th>
+        <tr style="background:black; color:white;">
+          <th>SLNO</th>
+          <th>Trade</th>
+          <th>BUY</th>
+          <th>SELL</th>
+          <th>Points Gained</th>
+          <th>Points Lost</th>
+          <th>Lots Size</th>
+          <th>Profit</th>
+          <th>Loss</th>
+          <th>Brokerage</th>
+          <th>Net P/L</th>
+          <th>Why u took</th>
           <th>Delete</th>
         </tr>
       </thead>
+
       <tbody></tbody>
     </table>
   </div>
@@ -64,10 +80,10 @@
 </div>
 
 <script>
-  let trades = JSON.parse(localStorage.getItem("trades")) || [];
+  let trades = JSON.parse(localStorage.getItem("tradesV2")) || [];
 
   function saveTrades() {
-    localStorage.setItem("trades", JSON.stringify(trades));
+    localStorage.setItem("tradesV2", JSON.stringify(trades));
   }
 
   function loadTrades() {
@@ -77,35 +93,47 @@
     trades.forEach((t, index) => {
       const row = `
         <tr>
-          <td contenteditable="true" oninput="updateTrade(${index}, 'date', this.innerText)">${t.date}</td>
-          <td contenteditable="true" oninput="updateTrade(${index}, 'symbol', this.innerText)">${t.symbol}</td>
-          <td contenteditable="true" oninput="updateTrade(${index}, 'entry', this.innerText)">${t.entry}</td>
-          <td contenteditable="true" oninput="updateTrade(${index}, 'exit', this.innerText)">${t.exit}</td>
-          <td contenteditable="true" oninput="updateTrade(${index}, 'sl', this.innerText)">${t.sl}</td>
-          <td contenteditable="true" oninput="updateTrade(${index}, 'result', this.innerText)">${t.result}</td>
-          <td contenteditable="true" oninput="updateTrade(${index}, 'emotion', this.innerText)">${t.emotion}</td>
-          <td contenteditable="true" oninput="updateTrade(${index}, 'notes', this.innerText)">${t.notes}</td>
-          <td><button class="delete-btn" onclick="deleteTrade(${index})">X</button></td>
+          <td>${index + 1}</td>
+          <td contenteditable="true" oninput="update(${index}, 'trade', this.innerText)">${t.trade}</td>
+          <td contenteditable="true" oninput="update(${index}, 'buy', this.innerText)">${t.buy}</td>
+          <td contenteditable="true" oninput="update(${index}, 'sell', this.innerText)">${t.sell}</td>
+          <td contenteditable="true" oninput="update(${index}, 'pg', this.innerText)">${t.pg}</td>
+          <td contenteditable="true" oninput="update(${index}, 'pl', this.innerText)">${t.pl}</td>
+          <td contenteditable="true" oninput="update(${index}, 'lots', this.innerText)">${t.lots}</td>
+          <td contenteditable="true" oninput="update(${index}, 'profit', this.innerText)">${t.profit}</td>
+          <td contenteditable="true" oninput="update(${index}, 'loss', this.innerText)">${t.loss}</td>
+          <td contenteditable="true" oninput="update(${index}, 'brokerage', this.innerText)">${t.brokerage}</td>
+          <td>${(Number(t.profit) - Number(t.loss) - Number(t.brokerage)).toFixed(2)}</td>
+          <td contenteditable="true" oninput="update(${index}, 'reason', this.innerText)">${t.reason}</td>
+          <td>
+            <button onclick="deleteTrade(${index})" 
+                    style="background:red; color:white; border:none; padding:6px; cursor:pointer;">
+              X
+            </button>
+          </td>
         </tr>`;
       tbody.innerHTML += row;
     });
   }
 
-  function updateTrade(index, field, value) {
+  function update(index, field, value) {
     trades[index][field] = value;
     saveTrades();
+    loadTrades();
   }
 
   function addTrade() {
     const newTrade = {
-      date: document.getElementById("date").value,
-      symbol: document.getElementById("symbol").value,
-      entry: document.getElementById("entry").value,
-      exit: document.getElementById("exit").value,
-      sl: document.getElementById("sl").value,
-      result: document.getElementById("result").value,
-      emotion: document.getElementById("emotion").value,
-      notes: document.getElementById("notes").value
+      trade: document.getElementById("trade").value,
+      buy: document.getElementById("buy").value,
+      sell: document.getElementById("sell").value,
+      pg: document.getElementById("pointsGained").value,
+      pl: document.getElementById("pointsLost").value,
+      lots: document.getElementById("lots").value,
+      profit: document.getElementById("profit").value,
+      loss: document.getElementById("loss").value,
+      brokerage: document.getElementById("brokerage").value,
+      reason: document.getElementById("reason").value
     };
 
     trades.push(newTrade);
@@ -113,8 +141,8 @@
     loadTrades();
   }
 
-  function deleteTrade(index) {
-    trades.splice(index, 1);
+  function deleteTrade(i) {
+    trades.splice(i, 1);
     saveTrades();
     loadTrades();
   }
