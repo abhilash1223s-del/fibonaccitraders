@@ -1,279 +1,412 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Trading Journal (Auto Calculations)</title>
+  <title>Trading Journal — Auto</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
 </head>
-<body style="font-family: Arial,Helvetica,sans-serif; background:#f3f3f3; margin:18px;">
+<body style="margin:0; font-family:Inter, Arial, Helvetica, sans-serif; background: linear-gradient(180deg, #eef7ff 0%, #ffffff 60%); color:#0b0b0b;">
 
-  <div style="max-width:1100px; margin:0 auto;">
-    <h1 style="margin:6px 0 18px 0; font-size:30px;">Trading Journal</h1>
+  <div style="max-width:1200px; margin:28px auto; padding:20px;">
+    <div style="background: rgba(255,255,255,0.75); border-radius:12px; padding:22px; box-shadow: 0 6px 18px rgba(20,30,60,0.07);">
+      <h1 style="margin:4px 0 12px 0; font-size:28px;">Trading Journal</h1>
 
-    <!-- FORM -->
-    <div style="background:#fff; border-radius:10px; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.06); margin-bottom:20px;">
-      <h2 style="margin:0 0 12px 0;">Add Trade</h2>
+      <!-- FORM -->
+      <div id="card" style="background:#fff; border-radius:10px; padding:18px; box-shadow: 0 2px 8px rgba(15,25,40,0.04);">
+        <h2 style="margin:0 0 12px 0; font-size:18px;">Add Trade</h2>
 
-      <input id="trade" placeholder="Trade (Example: NIFTY 25200CE)"
-             style="box-sizing:border-box; width:100%; padding:12px; margin-bottom:10px; border:1px solid #cfcfcf; border-radius:4px;">
+        <input id="trade" placeholder="Trade (Example: NIFTY 25200CE)"
+               style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
 
-      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:10px;">
-        <input id="buy" placeholder="Buy Price" type="number" step="any"
-               style="padding:10px; border:1px solid #cfcfcf; border-radius:4px;">
-        <input id="sell" placeholder="Sell Price" type="number" step="any"
-               style="padding:10px; border:1px solid #cfcfcf; border-radius:4px;">
-        <input id="lots" placeholder="Lot Size" type="number" step="any"
-               style="padding:10px; border:1px solid #cfcfcf; border-radius:4px;">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:10px;">
+          <input id="buy" placeholder="Buy Price" type="number" step="any"
+                 style="padding:10px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+          <input id="sell" placeholder="Sell Price" type="number" step="any"
+                 style="padding:10px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+          <input id="lots" placeholder="Lot Size" type="number" step="any"
+                 style="padding:10px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px;">
+          <input id="pointsGained" placeholder="Points Gained" readonly
+                 style="padding:10px; border:1px solid #f0f5fa; border-radius:6px; background:#fbfdff; font-size:14px;">
+          <input id="pointsLost" placeholder="Points Lost" readonly
+                 style="padding:10px; border:1px solid #f0f5fa; border-radius:6px; background:#fbfdff; font-size:14px;">
+          <input id="brokerage" placeholder="Brokerage (₹)" type="number" step="any" value="0"
+                 style="padding:10px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px;">
+          <input id="profit" placeholder="Profit (₹)" readonly
+                 style="padding:10px; border:1px solid #f0f5fa; border-radius:6px; background:#fbfdff; font-size:14px;">
+          <input id="loss" placeholder="Loss (₹)" readonly
+                 style="padding:10px; border:1px solid #f0f5fa; border-radius:6px; background:#fbfdff; font-size:14px;">
+          <input id="net" placeholder="Net P/L (₹)" readonly
+                 style="padding:10px; border:1px solid #f0f5fa; border-radius:6px; background:#fffefc; font-size:14px; font-weight:600;">
+        </div>
+
+        <input id="reason" placeholder="Why you took this trade?"
+               style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #e2e8f0; border-radius:6px; font-size:14px;">
+
+        <div style="display:flex; gap:10px;">
+          <button id="addBtn" style="flex:1; padding:12px; background:#022b57; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600;">
+            Add Trade
+          </button>
+          <button id="clearBtn" style="padding:12px; background:#f3f4f6; color:#111; border:1px solid #e6e6e6; border-radius:8px; cursor:pointer;">
+            Clear
+          </button>
+        </div>
       </div>
 
-      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:10px;">
-        <input id="pointsGained" placeholder="Points Gained" readonly
-               style="padding:10px; border:1px solid #e6e6e6; border-radius:4px; background:#fafafa;">
-        <input id="pointsLost" placeholder="Points Lost" readonly
-               style="padding:10px; border:1px solid #e6e6e6; border-radius:4px; background:#fafafa;">
-        <input id="brokerage" placeholder="Brokerage (₹)" type="number" step="any" value="0"
-               style="padding:10px; border:1px solid #cfcfcf; border-radius:4px;">
+      <!-- TABLE -->
+      <div style="margin-top:18px; background:#fff; border-radius:10px; padding:16px; box-shadow: 0 2px 8px rgba(15,25,40,0.04);">
+        <h2 style="margin:0 0 12px 0; font-size:18px;">Trades</h2>
+
+        <div style="overflow:auto;">
+          <table id="tradeTable" style="width:100%; border-collapse:collapse; min-width:1200px;">
+            <thead>
+              <tr style="background:#022b57; color:#fff; text-align:left;">
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">SLNO</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">Trade</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">BUY</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">SELL</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">Points Gained</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">Points Lost</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">Lots Size</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">Profit</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">Loss</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">Brokerage</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">Net P/L</th>
+                <th style="padding:10px; border-right:1px solid rgba(255,255,255,0.08);">Remarks / Justification</th>
+                <th style="padding:10px;">Delete</th>
+              </tr>
+            </thead>
+            <tbody style="background:#fff;"></tbody>
+          </table>
+        </div>
       </div>
 
-      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:16px;">
-        <input id="profit" placeholder="Profit (₹)" readonly
-               style="padding:10px; border:1px solid #e6e6e6; border-radius:4px; background:#fafafa;">
-        <input id="loss" placeholder="Loss (₹)" readonly
-               style="padding:10px; border:1px solid #e6e6e6; border-radius:4px; background:#fafafa;">
-        <input id="net" placeholder="Net P/L (₹)" readonly
-               style="padding:10px; border:1px solid #e6e6e6; border-radius:4px; background:#fafafa;">
-      </div>
-
-      <input id="reason" placeholder="Why you took this trade?"
-             style="box-sizing:border-box; width:100%; padding:12px; margin-bottom:12px; border:1px solid #cfcfcf; border-radius:4px;">
-
-      <button id="addBtn" style="width:100%; padding:12px; background:#111; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;">
-        Add Trade
-      </button>
-    </div>
-
-    <!-- TABLE -->
-    <div style="background:#fff; border-radius:10px; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.06);">
-      <h2 style="margin:0 0 12px 0;">Trades</h2>
-
-      <div style="overflow-x:auto;">
-        <table id="tradeTable" style="width:100%; border-collapse:collapse; min-width:1100px;">
-          <thead>
-            <tr style="background:#111; color:#fff; text-align:left;">
-              <th style="padding:10px; border-right:1px solid #fff;">SLNO</th>
-              <th style="padding:10px; border-right:1px solid #fff;">Trade</th>
-              <th style="padding:10px; border-right:1px solid #fff;">BUY</th>
-              <th style="padding:10px; border-right:1px solid #fff;">SELL</th>
-              <th style="padding:10px; border-right:1px solid #fff;">Points Gained</th>
-              <th style="padding:10px; border-right:1px solid #fff;">Points Lost</th>
-              <th style="padding:10px; border-right:1px solid #fff;">Lots Size</th>
-              <th style="padding:10px; border-right:1px solid #fff;">Profit</th>
-              <th style="padding:10px; border-right:1px solid #fff;">Loss</th>
-              <th style="padding:10px; border-right:1px solid #fff;">Brokerage</th>
-              <th style="padding:10px; border-right:1px solid #fff;">Net P/L</th>
-              <th style="padding:10px; border-right:1px solid #fff;">Why u took</th>
-              <th style="padding:10px;">Delete</th>
-            </tr>
-          </thead>
-          <tbody style="background:#fff;"></tbody>
-        </table>
-      </div>
-    </div>
-
+    </div> <!-- outer card -->
   </div>
 
-  <script>
-    // ---------- utilities ----------
-    const $ = id => document.getElementById(id);
-    const toNum = v => {
-      const n = parseFloat(v);
-      return isFinite(n) ? n : 0;
-    };
+  <!-- MODAL (reason prompt) -->
+  <div id="modalOverlay" style="display:none; position:fixed; inset:0; background:rgba(5,10,20,0.45); align-items:center; justify-content:center; z-index:9999;">
+    <div style="width:520px; max-width:92%; background:#fff; border-radius:10px; padding:18px; box-shadow:0 12px 40px rgba(10,20,40,0.4);">
+      <h3 id="modalTitle" style="margin:0 0 8px 0;">Provide reason</h3>
+      <p id="modalText" style="margin:0 0 12px 0; color:#333; font-size:14px;">Reason required</p>
+      <textarea id="modalReason" placeholder="Type reason here..." style="width:100%; height:110px; padding:10px; border:1px solid #e6eef9; border-radius:6px; font-size:14px;"></textarea>
+      <div style="display:flex; gap:10px; margin-top:12px; justify-content:flex-end;">
+        <button id="modalCancel" style="padding:10px 12px; border-radius:6px; border:1px solid #d0d7e6; background:#f8fafc; cursor:pointer;">Cancel</button>
+        <button id="modalConfirm" style="padding:10px 14px; border-radius:6px; border:none; background:#0b63b6; color:#fff; cursor:pointer;">Confirm</button>
+      </div>
+    </div>
+  </div>
 
-    // ---------- storage ----------
-    const STORAGE_KEY = "tradingJournal_v4";
-    let trades = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+<script>
+  // ---------------- utilities ----------------
+  const $ = id => document.getElementById(id);
+  const toNum = v => {
+    const n = parseFloat(String(v).replace(/,/g,''));
+    return Number.isFinite(n) ? n : 0;
+  };
+  const format2 = v => (Math.round(v*100)/100).toFixed(2);
 
-    // ---------- form elements ----------
-    const buyEl = $("buy");
-    const sellEl = $("sell");
-    const lotsEl = $("lots");
-    const brokerageEl = $("brokerage");
-    const pgEl = $("pointsGained");
-    const plEl = $("pointsLost");
-    const profitEl = $("profit");
-    const lossEl = $("loss");
-    const netEl = $("net");
-    const tradeEl = $("trade");
-    const reasonEl = $("reason");
-    const addBtn = $("addBtn");
-    const tbody = document.querySelector("#tradeTable tbody");
+  // ---------------- storage ----------------
+  const STORAGE_KEY = "tradingJournal_v_final";
+  let trades = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 
-    // ---------- calculation logic (as requested) ----------
-    // Points Gained = Sell - Buy
-    // Points Lost = Buy - Sell
-    // Profit = Points Gained * Lot Size
-    // Loss = Points Lost * Lot Size
-    // Net P/L = Profit - Loss - Brokerage
+  // ---------------- elements ----------------
+  const tradeEl = $("trade");
+  const buyEl = $("buy");
+  const sellEl = $("sell");
+  const lotsEl = $("lots");
+  const brokerageEl = $("brokerage");
+  const pgEl = $("pointsGained");
+  const plEl = $("pointsLost");
+  const profitEl = $("profit");
+  const lossEl = $("loss");
+  const netEl = $("net");
+  const reasonEl = $("reason");
+  const addBtn = $("addBtn");
+  const clearBtn = $("clearBtn");
+  const tbody = document.querySelector("#tradeTable tbody");
 
-    function recalcForm() {
-      const buy = toNum(buyEl.value);
-      const sell = toNum(sellEl.value);
-      const lots = toNum(lotsEl.value);
-      const brokerage = toNum(brokerageEl.value);
+  // modal elements
+  const modalOverlay = $("modalOverlay");
+  const modalTitle = $("modalTitle");
+  const modalText = $("modalText");
+  const modalReason = $("modalReason");
+  const modalCancel = $("modalCancel");
+  const modalConfirm = $("modalConfirm");
 
-      const pg = +(sell - buy);                // can be negative if sell<buy
-      const pl = +(buy - sell);                // positive when a loss
-      const profit = pg > 0 ? pg * lots : 0;   // profit only if pg>0
-      const loss = pl > 0 ? pl * lots : 0;     // loss only if pl>0
-      const net = +(profit - loss - brokerage);
+  // temporary hold for pending trade and pending callback
+  let pendingTrade = null;
+  let pendingResolve = null;
 
-      pgEl.value = (Math.round(pg * 100) / 100).toFixed(2);
-      plEl.value = (Math.round(pl * 100) / 100).toFixed(2);
-      profitEl.value = (Math.round(profit * 100) / 100).toFixed(2);
-      lossEl.value = (Math.round(loss * 100) / 100).toFixed(2);
-      netEl.value = (Math.round(net * 100) / 100).toFixed(2);
-    }
+  // ---------------- formulas ----------------
+  // Points Gained = Sell - Buy
+  // Points Lost = Buy - Sell
+  // Profit = Points Gained * Lot Size
+  // Loss = Points Lost * Lot Size
+  // Net P/L = Profit - Loss - Brokerage
 
-    // recalc when user types in key fields (buy / sell / lots / brokerage)
-    [buyEl, sellEl, lotsEl, brokerageEl].forEach(el => {
-      el.addEventListener("input", recalcForm);
-    });
+  function recalcForm() {
+    const buy = toNum(buyEl.value);
+    const sell = toNum(sellEl.value);
+    const lots = toNum(lotsEl.value);
+    const brokerage = toNum(brokerageEl.value);
 
-    // ---------- table rendering ----------
-    function renderTable() {
-      tbody.innerHTML = "";
-      trades.forEach((t, i) => {
-        const tr = document.createElement("tr");
-        tr.style.borderBottom = "1px solid #eee";
+    const pg = sell - buy;
+    const pl = buy - sell;
+    const profit = pg > 0 ? pg * lots : 0;
+    const loss = pl > 0 ? pl * lots : 0;
+    const net = profit - loss - brokerage;
 
-        // computed net for safety (in case stored values are stale)
-        const buy = toNum(t.buy);
-        const sell = toNum(t.sell);
-        const lots = toNum(t.lots);
-        const brokerage = toNum(t.brokerage);
+    pgEl.value = format2(pg);
+    plEl.value = format2(pl);
+    profitEl.value = format2(profit);
+    lossEl.value = format2(loss);
+    netEl.value = format2(net);
+  }
 
-        const pg = +(sell - buy);
-        const pl = +(buy - sell);
-        const profit = pg > 0 ? pg * lots : 0;
-        const loss = pl > 0 ? pl * lots : 0;
-        const net = +(profit - loss - brokerage);
+  [buyEl, sellEl, lotsEl, brokerageEl].forEach(el => el.addEventListener("input", recalcForm));
 
-        tr.innerHTML = `
-          <td style="padding:10px; vertical-align:middle;">${i+1}</td>
+  // ---------------- modal prompt (returns promise) ----------------
+  function askReason(title, text) {
+    return new Promise(resolve => {
+      modalTitle.textContent = title;
+      modalText.textContent = text;
+      modalReason.value = "";
+      modalOverlay.style.display = "flex";
+      modalReason.focus();
 
-          <td contenteditable="true" data-field="trade" style="padding:10px; min-width:140px;">${escapeHtml(t.trade)}</td>
+      pendingResolve = resolve;
 
-          <td contenteditable="true" data-field="buy" style="padding:10px; text-align:right;">${t.buy}</td>
-          <td contenteditable="true" data-field="sell" style="padding:10px; text-align:right;">${t.sell}</td>
-
-          <td style="padding:10px; text-align:right;">${pg.toFixed(2)}</td>
-          <td style="padding:10px; text-align:right;">${pl.toFixed(2)}</td>
-
-          <td contenteditable="true" data-field="lots" style="padding:10px; text-align:right;">${t.lots}</td>
-
-          <td style="padding:10px; text-align:right;">${profit.toFixed(2)}</td>
-          <td style="padding:10px; text-align:right;">${loss.toFixed(2)}</td>
-
-          <td contenteditable="true" data-field="brokerage" style="padding:10px; text-align:right;">${t.brokerage}</td>
-
-          <td style="padding:10px; text-align:right; font-weight:600;">${net.toFixed(2)}</td>
-
-          <td contenteditable="true" data-field="reason" style="padding:10px;">${escapeHtml(t.reason)}</td>
-
-          <td style="padding:10px; text-align:center;">
-            <button data-delete="${i}" style="background:#d33; color:#fff; border:none; padding:8px 10px; border-radius:4px; cursor:pointer;">X</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      attachRowListeners();
-    }
-
-    // ---------- helpers to keep data consistent ----------
-    function escapeHtml(str = "") {
-      return String(str).replace(/[&<>"']/g, ch => ({
-        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-      })[ch]);
-    }
-
-    function attachRowListeners() {
-      // delete buttons
-      tbody.querySelectorAll("button[data-delete]").forEach(btn => {
-        btn.onclick = () => {
-          const idx = Number(btn.getAttribute("data-delete"));
-          trades.splice(idx, 1);
-          saveAndRender();
-        };
-      });
-
-      // editable cells: oninput -> update model & recompute row
-      tbody.querySelectorAll("[contenteditable='true']").forEach(cell => {
-        cell.oninput = () => {
-          const tr = cell.closest("tr");
-          const rowIndex = Array.from(tbody.children).indexOf(tr);
-          const field = cell.getAttribute("data-field");
-          if (!field) return;
-
-          trades[rowIndex][field] = cell.innerText.trim();
-          // Ensure numbers are normalized for numeric fields
-          if (["buy", "sell", "lots", "brokerage"].includes(field)) {
-            // remove commas and keep numeric-ish value
-            trades[rowIndex][field] = (parseFloat(trades[rowIndex][field].replace(/,/g,'')) || 0).toString();
-          }
-          saveAndRender();
-        };
-      });
-    }
-
-    function saveAndRender() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
-      renderTable();
-    }
-
-    // ---------- add trade ----------
-    addBtn.addEventListener("click", () => {
-      const newTrade = {
-        trade: tradeEl.value.trim(),
-        buy: (buyEl.value || "").toString(),
-        sell: (sellEl.value || "").toString(),
-        lots: (lotsEl.value || "").toString(),
-        brokerage: (brokerageEl.value || "0").toString(),
-        reason: reasonEl.value.trim()
+      modalCancel.onclick = () => {
+        modalOverlay.style.display = "none";
+        pendingResolve(false);
+        pendingResolve = null;
       };
 
-      trades.push(newTrade);
-      saveAndRender();
+      modalConfirm.onclick = () => {
+        const val = modalReason.value.trim();
+        if (!val) {
+          // require a reason
+          modalReason.focus();
+          modalReason.style.border = "1px solid #d9534f";
+          setTimeout(()=> modalReason.style.border = "1px solid #e6eef9", 900);
+          return;
+        }
+        modalOverlay.style.display = "none";
+        pendingResolve(val);
+        pendingResolve = null;
+      };
+    });
+  }
 
-      // clear form (but keep brokerage default)
-      tradeEl.value = "";
-      buyEl.value = "";
-      sellEl.value = "";
-      lotsEl.value = "";
-      reasonEl.value = "";
-      // reset computed displays
-      pgEl.value = "";
-      plEl.value = "";
-      profitEl.value = "";
-      lossEl.value = "";
-      netEl.value = "";
+  // ---------------- helpers ----------------
+  function saveTrades() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
+  }
+
+  function renderTable() {
+    tbody.innerHTML = "";
+    trades.forEach((t, i) => {
+      const buy = toNum(t.buy);
+      const sell = toNum(t.sell);
+      const lots = toNum(t.lots);
+      const brokerage = toNum(t.brokerage);
+
+      const pg = sell - buy;
+      const pl = buy - sell;
+      const profit = pg > 0 ? pg * lots : 0;
+      const loss = pl > 0 ? pl * lots : 0;
+      const net = profit - loss - brokerage;
+
+      const tr = document.createElement("tr");
+      tr.style.borderBottom = "1px solid #f1f5f9";
+
+      tr.innerHTML = `
+        <td style="padding:10px; vertical-align:middle;">${i+1}</td>
+        <td contenteditable="true" data-field="trade" style="padding:10px; min-width:160px;">${escapeHtml(t.trade || '')}</td>
+        <td contenteditable="true" data-field="buy" style="padding:10px; text-align:right;">${t.buy || ''}</td>
+        <td contenteditable="true" data-field="sell" style="padding:10px; text-align:right;">${t.sell || ''}</td>
+        <td style="padding:10px; text-align:right;">${format2(pg)}</td>
+        <td style="padding:10px; text-align:right;">${format2(pl)}</td>
+        <td contenteditable="true" data-field="lots" style="padding:10px; text-align:right;">${t.lots || ''}</td>
+        <td style="padding:10px; text-align:right;">${format2(profit)}</td>
+        <td style="padding:10px; text-align:right;">${format2(loss)}</td>
+        <td contenteditable="true" data-field="brokerage" style="padding:10px; text-align:right;">${t.brokerage || '0'}</td>
+        <td style="padding:10px; text-align:right; font-weight:600;">${format2(net)}</td>
+        <td contenteditable="true" data-field="remarks" style="padding:10px; min-width:200px;">${escapeHtml(t.remarks || '')}</td>
+        <td style="padding:10px; text-align:center;"><button data-delete="${i}" style="background:#e11d48; color:#fff; border:none; padding:8px 10px; border-radius:6px; cursor:pointer;">X</button></td>
+      `;
+      tbody.appendChild(tr);
     });
 
-    // initial render
+    attachRowListeners();
+  }
+
+  function escapeHtml(str = "") {
+    return String(str).replace(/[&<>"']/g, ch => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    })[ch]);
+  }
+
+  function attachRowListeners() {
+    // delete
+    tbody.querySelectorAll("button[data-delete]").forEach(btn => {
+      btn.onclick = () => {
+        const idx = Number(btn.getAttribute("data-delete"));
+        trades.splice(idx, 1);
+        saveTrades();
+        renderTable();
+      };
+    });
+
+    // editable cells
+    tbody.querySelectorAll("[contenteditable='true']").forEach(cell => {
+      cell.oninput = () => {
+        const tr = cell.closest("tr");
+        const rowIndex = Array.from(tbody.children).indexOf(tr);
+        const field = cell.getAttribute("data-field");
+        if (!field) return;
+        let txt = cell.innerText.trim();
+
+        // normalize numeric fields
+        if (["buy","sell","lots","brokerage"].includes(field)) {
+          txt = (parseFloat(txt.replace(/,/g,'')) || 0).toString();
+        }
+
+        trades[rowIndex][field] = txt;
+        // ensure remarks and trade fields stay strings
+        if (!trades[rowIndex].remarks) trades[rowIndex].remarks = "";
+        if (!trades[rowIndex].trade) trades[rowIndex].trade = "";
+
+        saveTrades();
+        renderTable(); // rerender to recalc computed cols
+      };
+    });
+  }
+
+  // ---------------- business rules before add ----------------
+  async function checkRulesBeforeAdd(nt) {
+    // nt is newTrade object (not yet saved)
+    // 1) if trades length >= 15 -> ask reason for extra trades
+    if (trades.length >= 15) {
+      const reason = await askReason("Exceeded 15 trades", "You have reached 15 trades. Please provide justification to add more trades today.");
+      if (!reason) return { allowed:false };
+      nt.remarks = appendRemark(nt.remarks, "Extra trades justification: " + reason);
+    }
+
+    // compute numbers
+    const buy = toNum(nt.buy);
+    const sell = toNum(nt.sell);
+    const lots = toNum(nt.lots);
+    const brokerage = toNum(nt.brokerage);
+    const pg = sell - buy;
+    const pl = buy - sell;
+    const profit = pg > 0 ? pg * lots : 0;
+    const loss = pl > 0 ? pl * lots : 0;
+
+    // 2) if loss > 350 -> ask reason
+    if (loss > 350) {
+      const reason = await askReason("Large Loss Detected", `This trade would record a loss of ₹${format2(loss)} which exceeds ₹350. Explain why you took this trade.`);
+      if (!reason) return { allowed:false };
+      nt.remarks = appendRemark(nt.remarks, "Large loss reason: " + reason);
+    }
+
+    // 3) if same trade name appears more than 3 times already -> ask reason
+    const name = (nt.trade || "").toLowerCase().trim();
+    if (name) {
+      const sameCount = trades.reduce((c, r) => c + ((r.trade || "").toLowerCase().trim() === name ? 1 : 0), 0);
+      if (sameCount >= 3) {
+        const reason = await askReason("Frequent Same Trade", `You already traded "${nt.trade}" ${sameCount} time(s). Why are you repeating it again?`);
+        if (!reason) return { allowed:false };
+        nt.remarks = appendRemark(nt.remarks, "Repeated trade reason: " + reason);
+      }
+    }
+
+    return { allowed:true, trade: nt };
+  }
+
+  function appendRemark(existing = "", note = "") {
+    existing = (existing || "").trim();
+    if (!existing) return note;
+    return existing + " | " + note;
+  }
+
+  // ---------------- add trade handler ----------------
+  addBtn.addEventListener("click", async () => {
+    const newTrade = {
+      trade: tradeEl.value.trim(),
+      buy: (buyEl.value || "").toString(),
+      sell: (sellEl.value || "").toString(),
+      lots: (lotsEl.value || "").toString(),
+      brokerage: (brokerageEl.value || "0").toString(),
+      remarks: reasonEl.value.trim()
+    };
+
+    // run validations & prompts
+    const res = await checkRulesBeforeAdd(newTrade);
+    if (!res.allowed) {
+      // user cancelled
+      return;
+    }
+
+    // push and save
+    trades.push(res.trade || newTrade);
+    saveTrades();
     renderTable();
 
-    // recalc form on load in case there are default numbers
-    recalcForm();
+    // clear form but keep brokerage as default 0 for convenience
+    tradeEl.value = "";
+    buyEl.value = "";
+    sellEl.value = "";
+    lotsEl.value = "";
+    reasonEl.value = "";
+    pgEl.value = "";
+    plEl.value = "";
+    profitEl.value = "";
+    lossEl.value = "";
+    netEl.value = "";
+  });
 
-    // allow Enter key on any of the number fields to trigger Add
-    [buyEl, sellEl, lotsEl, brokerageEl, tradeEl, reasonEl].forEach(el => {
-      el.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          addBtn.click();
-        }
-      });
+  clearBtn.addEventListener("click", () => {
+    tradeEl.value = "";
+    buyEl.value = "";
+    sellEl.value = "";
+    lotsEl.value = "";
+    reasonEl.value = "";
+    brokerageEl.value = "0";
+    pgEl.value = "";
+    plEl.value = "";
+    profitEl.value = "";
+    lossEl.value = "";
+    netEl.value = "";
+  });
+
+  // initial render
+  renderTable();
+  recalcForm();
+
+  // allow Enter to add
+  [buyEl, sellEl, lotsEl, brokerageEl, tradeEl, reasonEl].forEach(el => {
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addBtn.click();
+      }
     });
-  </script>
+  });
+
+  // close modal on overlay click (optional)
+  modalOverlay.addEventListener("click", (ev) => {
+    if (ev.target === modalOverlay) {
+      modalOverlay.style.display = "none";
+      if (pendingResolve) { pendingResolve(false); pendingResolve = null; }
+    }
+  });
+</script>
 </body>
 </html>
