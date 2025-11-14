@@ -1,154 +1,279 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Trading Journal</title>
+  <meta charset="utf-8" />
+  <title>Trading Journal (Auto Calculations)</title>
 </head>
-<body style="font-family: Arial; background:#f4f4f4; margin:20px;">
+<body style="font-family: Arial,Helvetica,sans-serif; background:#f3f3f3; margin:18px;">
 
-<h1 style="text-align:center;">Trading Journal</h1>
+  <div style="max-width:1100px; margin:0 auto;">
+    <h1 style="margin:6px 0 18px 0; font-size:30px;">Trading Journal</h1>
 
-<div style="max-width:1000px; margin:auto;">
+    <!-- FORM -->
+    <div style="background:#fff; border-radius:10px; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.06); margin-bottom:20px;">
+      <h2 style="margin:0 0 12px 0;">Add Trade</h2>
 
-  <!-- Add Trade -->
-  <div style="background:white; padding:20px; border-radius:10px; margin-bottom:20px;">
-    <h2>Add Trade</h2>
+      <input id="trade" placeholder="Trade (Example: NIFTY 25200CE)"
+             style="box-sizing:border-box; width:100%; padding:12px; margin-bottom:10px; border:1px solid #cfcfcf; border-radius:4px;">
 
-    <input id="trade" placeholder="Trade (Example: NIFTY 25200CE)" 
-           style="padding:10px; width:100%; margin-bottom:10px;">
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:10px;">
+        <input id="buy" placeholder="Buy Price" type="number" step="any"
+               style="padding:10px; border:1px solid #cfcfcf; border-radius:4px;">
+        <input id="sell" placeholder="Sell Price" type="number" step="any"
+               style="padding:10px; border:1px solid #cfcfcf; border-radius:4px;">
+        <input id="lots" placeholder="Lot Size" type="number" step="any"
+               style="padding:10px; border:1px solid #cfcfcf; border-radius:4px;">
+      </div>
 
-    <input id="buy" placeholder="Buy Price" 
-           style="padding:10px; width:100%; margin-bottom:10px;">
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:10px;">
+        <input id="pointsGained" placeholder="Points Gained" readonly
+               style="padding:10px; border:1px solid #e6e6e6; border-radius:4px; background:#fafafa;">
+        <input id="pointsLost" placeholder="Points Lost" readonly
+               style="padding:10px; border:1px solid #e6e6e6; border-radius:4px; background:#fafafa;">
+        <input id="brokerage" placeholder="Brokerage (₹)" type="number" step="any" value="0"
+               style="padding:10px; border:1px solid #cfcfcf; border-radius:4px;">
+      </div>
 
-    <input id="sell" placeholder="Sell Price" 
-           style="padding:10px; width:100%; margin-bottom:10px;">
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:16px;">
+        <input id="profit" placeholder="Profit (₹)" readonly
+               style="padding:10px; border:1px solid #e6e6e6; border-radius:4px; background:#fafafa;">
+        <input id="loss" placeholder="Loss (₹)" readonly
+               style="padding:10px; border:1px solid #e6e6e6; border-radius:4px; background:#fafafa;">
+        <input id="net" placeholder="Net P/L (₹)" readonly
+               style="padding:10px; border:1px solid #e6e6e6; border-radius:4px; background:#fafafa;">
+      </div>
 
-    <input id="pointsGained" placeholder="Points Gained" 
-           style="padding:10px; width:100%; margin-bottom:10px;">
+      <input id="reason" placeholder="Why you took this trade?"
+             style="box-sizing:border-box; width:100%; padding:12px; margin-bottom:12px; border:1px solid #cfcfcf; border-radius:4px;">
 
-    <input id="pointsLost" placeholder="Points Lost" 
-           style="padding:10px; width:100%; margin-bottom:10px;">
+      <button id="addBtn" style="width:100%; padding:12px; background:#111; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;">
+        Add Trade
+      </button>
+    </div>
 
-    <input id="lots" placeholder="Lot Size" 
-           style="padding:10px; width:100%; margin-bottom:10px;">
+    <!-- TABLE -->
+    <div style="background:#fff; border-radius:10px; padding:18px; box-shadow:0 2px 6px rgba(0,0,0,0.06);">
+      <h2 style="margin:0 0 12px 0;">Trades</h2>
 
-    <input id="profit" placeholder="Profit (₹)" 
-           style="padding:10px; width:100%; margin-bottom:10px;">
+      <div style="overflow-x:auto;">
+        <table id="tradeTable" style="width:100%; border-collapse:collapse; min-width:1100px;">
+          <thead>
+            <tr style="background:#111; color:#fff; text-align:left;">
+              <th style="padding:10px; border-right:1px solid #fff;">SLNO</th>
+              <th style="padding:10px; border-right:1px solid #fff;">Trade</th>
+              <th style="padding:10px; border-right:1px solid #fff;">BUY</th>
+              <th style="padding:10px; border-right:1px solid #fff;">SELL</th>
+              <th style="padding:10px; border-right:1px solid #fff;">Points Gained</th>
+              <th style="padding:10px; border-right:1px solid #fff;">Points Lost</th>
+              <th style="padding:10px; border-right:1px solid #fff;">Lots Size</th>
+              <th style="padding:10px; border-right:1px solid #fff;">Profit</th>
+              <th style="padding:10px; border-right:1px solid #fff;">Loss</th>
+              <th style="padding:10px; border-right:1px solid #fff;">Brokerage</th>
+              <th style="padding:10px; border-right:1px solid #fff;">Net P/L</th>
+              <th style="padding:10px; border-right:1px solid #fff;">Why u took</th>
+              <th style="padding:10px;">Delete</th>
+            </tr>
+          </thead>
+          <tbody style="background:#fff;"></tbody>
+        </table>
+      </div>
+    </div>
 
-    <input id="loss" placeholder="Loss (₹)" 
-           style="padding:10px; width:100%; margin-bottom:10px;">
-
-    <input id="brokerage" placeholder="Brokerage (₹)" 
-           style="padding:10px; width:100%; margin-bottom:10px;">
-
-    <input id="reason" placeholder="Why you took this trade?" 
-           style="padding:10px; width:100%; margin-bottom:10px;">
-
-    <button onclick="addTrade()" 
-            style="padding:12px; width:100%; background:black; color:white; border:none; cursor:pointer;">
-      Add Trade
-    </button>
   </div>
 
-  <!-- Trade Table -->
-  <div style="background:white; padding:20px; border-radius:10px;">
-    <h2>Trades</h2>
-    <table id="tradeTable" 
-           style="width:100%; border-collapse:collapse; font-size:14px;">
-      
-      <thead>
-        <tr style="background:black; color:white;">
-          <th>SLNO</th>
-          <th>Trade</th>
-          <th>BUY</th>
-          <th>SELL</th>
-          <th>Points Gained</th>
-          <th>Points Lost</th>
-          <th>Lots Size</th>
-          <th>Profit</th>
-          <th>Loss</th>
-          <th>Brokerage</th>
-          <th>Net P/L</th>
-          <th>Why u took</th>
-          <th>Delete</th>
-        </tr>
-      </thead>
-
-      <tbody></tbody>
-    </table>
-  </div>
-
-</div>
-
-<script>
-  let trades = JSON.parse(localStorage.getItem("tradesV2")) || [];
-
-  function saveTrades() {
-    localStorage.setItem("tradesV2", JSON.stringify(trades));
-  }
-
-  function loadTrades() {
-    const tbody = document.querySelector("#tradeTable tbody");
-    tbody.innerHTML = "";
-
-    trades.forEach((t, index) => {
-      const row = `
-        <tr>
-          <td>${index + 1}</td>
-          <td contenteditable="true" oninput="update(${index}, 'trade', this.innerText)">${t.trade}</td>
-          <td contenteditable="true" oninput="update(${index}, 'buy', this.innerText)">${t.buy}</td>
-          <td contenteditable="true" oninput="update(${index}, 'sell', this.innerText)">${t.sell}</td>
-          <td contenteditable="true" oninput="update(${index}, 'pg', this.innerText)">${t.pg}</td>
-          <td contenteditable="true" oninput="update(${index}, 'pl', this.innerText)">${t.pl}</td>
-          <td contenteditable="true" oninput="update(${index}, 'lots', this.innerText)">${t.lots}</td>
-          <td contenteditable="true" oninput="update(${index}, 'profit', this.innerText)">${t.profit}</td>
-          <td contenteditable="true" oninput="update(${index}, 'loss', this.innerText)">${t.loss}</td>
-          <td contenteditable="true" oninput="update(${index}, 'brokerage', this.innerText)">${t.brokerage}</td>
-          <td>${(Number(t.profit) - Number(t.loss) - Number(t.brokerage)).toFixed(2)}</td>
-          <td contenteditable="true" oninput="update(${index}, 'reason', this.innerText)">${t.reason}</td>
-          <td>
-            <button onclick="deleteTrade(${index})" 
-                    style="background:red; color:white; border:none; padding:6px; cursor:pointer;">
-              X
-            </button>
-          </td>
-        </tr>`;
-      tbody.innerHTML += row;
-    });
-  }
-
-  function update(index, field, value) {
-    trades[index][field] = value;
-    saveTrades();
-    loadTrades();
-  }
-
-  function addTrade() {
-    const newTrade = {
-      trade: document.getElementById("trade").value,
-      buy: document.getElementById("buy").value,
-      sell: document.getElementById("sell").value,
-      pg: document.getElementById("pointsGained").value,
-      pl: document.getElementById("pointsLost").value,
-      lots: document.getElementById("lots").value,
-      profit: document.getElementById("profit").value,
-      loss: document.getElementById("loss").value,
-      brokerage: document.getElementById("brokerage").value,
-      reason: document.getElementById("reason").value
+  <script>
+    // ---------- utilities ----------
+    const $ = id => document.getElementById(id);
+    const toNum = v => {
+      const n = parseFloat(v);
+      return isFinite(n) ? n : 0;
     };
 
-    trades.push(newTrade);
-    saveTrades();
-    loadTrades();
-  }
+    // ---------- storage ----------
+    const STORAGE_KEY = "tradingJournal_v4";
+    let trades = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 
-  function deleteTrade(i) {
-    trades.splice(i, 1);
-    saveTrades();
-    loadTrades();
-  }
+    // ---------- form elements ----------
+    const buyEl = $("buy");
+    const sellEl = $("sell");
+    const lotsEl = $("lots");
+    const brokerageEl = $("brokerage");
+    const pgEl = $("pointsGained");
+    const plEl = $("pointsLost");
+    const profitEl = $("profit");
+    const lossEl = $("loss");
+    const netEl = $("net");
+    const tradeEl = $("trade");
+    const reasonEl = $("reason");
+    const addBtn = $("addBtn");
+    const tbody = document.querySelector("#tradeTable tbody");
 
-  loadTrades();
-</script>
+    // ---------- calculation logic (as requested) ----------
+    // Points Gained = Sell - Buy
+    // Points Lost = Buy - Sell
+    // Profit = Points Gained * Lot Size
+    // Loss = Points Lost * Lot Size
+    // Net P/L = Profit - Loss - Brokerage
 
+    function recalcForm() {
+      const buy = toNum(buyEl.value);
+      const sell = toNum(sellEl.value);
+      const lots = toNum(lotsEl.value);
+      const brokerage = toNum(brokerageEl.value);
+
+      const pg = +(sell - buy);                // can be negative if sell<buy
+      const pl = +(buy - sell);                // positive when a loss
+      const profit = pg > 0 ? pg * lots : 0;   // profit only if pg>0
+      const loss = pl > 0 ? pl * lots : 0;     // loss only if pl>0
+      const net = +(profit - loss - brokerage);
+
+      pgEl.value = (Math.round(pg * 100) / 100).toFixed(2);
+      plEl.value = (Math.round(pl * 100) / 100).toFixed(2);
+      profitEl.value = (Math.round(profit * 100) / 100).toFixed(2);
+      lossEl.value = (Math.round(loss * 100) / 100).toFixed(2);
+      netEl.value = (Math.round(net * 100) / 100).toFixed(2);
+    }
+
+    // recalc when user types in key fields (buy / sell / lots / brokerage)
+    [buyEl, sellEl, lotsEl, brokerageEl].forEach(el => {
+      el.addEventListener("input", recalcForm);
+    });
+
+    // ---------- table rendering ----------
+    function renderTable() {
+      tbody.innerHTML = "";
+      trades.forEach((t, i) => {
+        const tr = document.createElement("tr");
+        tr.style.borderBottom = "1px solid #eee";
+
+        // computed net for safety (in case stored values are stale)
+        const buy = toNum(t.buy);
+        const sell = toNum(t.sell);
+        const lots = toNum(t.lots);
+        const brokerage = toNum(t.brokerage);
+
+        const pg = +(sell - buy);
+        const pl = +(buy - sell);
+        const profit = pg > 0 ? pg * lots : 0;
+        const loss = pl > 0 ? pl * lots : 0;
+        const net = +(profit - loss - brokerage);
+
+        tr.innerHTML = `
+          <td style="padding:10px; vertical-align:middle;">${i+1}</td>
+
+          <td contenteditable="true" data-field="trade" style="padding:10px; min-width:140px;">${escapeHtml(t.trade)}</td>
+
+          <td contenteditable="true" data-field="buy" style="padding:10px; text-align:right;">${t.buy}</td>
+          <td contenteditable="true" data-field="sell" style="padding:10px; text-align:right;">${t.sell}</td>
+
+          <td style="padding:10px; text-align:right;">${pg.toFixed(2)}</td>
+          <td style="padding:10px; text-align:right;">${pl.toFixed(2)}</td>
+
+          <td contenteditable="true" data-field="lots" style="padding:10px; text-align:right;">${t.lots}</td>
+
+          <td style="padding:10px; text-align:right;">${profit.toFixed(2)}</td>
+          <td style="padding:10px; text-align:right;">${loss.toFixed(2)}</td>
+
+          <td contenteditable="true" data-field="brokerage" style="padding:10px; text-align:right;">${t.brokerage}</td>
+
+          <td style="padding:10px; text-align:right; font-weight:600;">${net.toFixed(2)}</td>
+
+          <td contenteditable="true" data-field="reason" style="padding:10px;">${escapeHtml(t.reason)}</td>
+
+          <td style="padding:10px; text-align:center;">
+            <button data-delete="${i}" style="background:#d33; color:#fff; border:none; padding:8px 10px; border-radius:4px; cursor:pointer;">X</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      attachRowListeners();
+    }
+
+    // ---------- helpers to keep data consistent ----------
+    function escapeHtml(str = "") {
+      return String(str).replace(/[&<>"']/g, ch => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      })[ch]);
+    }
+
+    function attachRowListeners() {
+      // delete buttons
+      tbody.querySelectorAll("button[data-delete]").forEach(btn => {
+        btn.onclick = () => {
+          const idx = Number(btn.getAttribute("data-delete"));
+          trades.splice(idx, 1);
+          saveAndRender();
+        };
+      });
+
+      // editable cells: oninput -> update model & recompute row
+      tbody.querySelectorAll("[contenteditable='true']").forEach(cell => {
+        cell.oninput = () => {
+          const tr = cell.closest("tr");
+          const rowIndex = Array.from(tbody.children).indexOf(tr);
+          const field = cell.getAttribute("data-field");
+          if (!field) return;
+
+          trades[rowIndex][field] = cell.innerText.trim();
+          // Ensure numbers are normalized for numeric fields
+          if (["buy", "sell", "lots", "brokerage"].includes(field)) {
+            // remove commas and keep numeric-ish value
+            trades[rowIndex][field] = (parseFloat(trades[rowIndex][field].replace(/,/g,'')) || 0).toString();
+          }
+          saveAndRender();
+        };
+      });
+    }
+
+    function saveAndRender() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
+      renderTable();
+    }
+
+    // ---------- add trade ----------
+    addBtn.addEventListener("click", () => {
+      const newTrade = {
+        trade: tradeEl.value.trim(),
+        buy: (buyEl.value || "").toString(),
+        sell: (sellEl.value || "").toString(),
+        lots: (lotsEl.value || "").toString(),
+        brokerage: (brokerageEl.value || "0").toString(),
+        reason: reasonEl.value.trim()
+      };
+
+      trades.push(newTrade);
+      saveAndRender();
+
+      // clear form (but keep brokerage default)
+      tradeEl.value = "";
+      buyEl.value = "";
+      sellEl.value = "";
+      lotsEl.value = "";
+      reasonEl.value = "";
+      // reset computed displays
+      pgEl.value = "";
+      plEl.value = "";
+      profitEl.value = "";
+      lossEl.value = "";
+      netEl.value = "";
+    });
+
+    // initial render
+    renderTable();
+
+    // recalc form on load in case there are default numbers
+    recalcForm();
+
+    // allow Enter key on any of the number fields to trigger Add
+    [buyEl, sellEl, lotsEl, brokerageEl, tradeEl, reasonEl].forEach(el => {
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addBtn.click();
+        }
+      });
+    });
+  </script>
 </body>
 </html>
