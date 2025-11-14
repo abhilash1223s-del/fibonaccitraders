@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Trading Journal — Auto</title>
+  <title>Trading Journal — With Export, Summary & Equity Curve</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body style="margin:0; font-family:Inter, Arial, Helvetica, sans-serif; background: linear-gradient(180deg, #eef7ff 0%, #ffffff 60%); color:#0b0b0b;">
 
-  <div style="max-width:1200px; margin:28px auto; padding:20px;">
-    <div style="background: rgba(255,255,255,0.75); border-radius:12px; padding:22px; box-shadow: 0 6px 18px rgba(20,30,60,0.07);">
+  <div style="max-width:1250px; margin:28px auto; padding:20px;">
+    <div style="background: rgba(255,255,255,0.78); border-radius:12px; padding:22px; box-shadow: 0 6px 18px rgba(20,30,60,0.07);">
       <h1 style="margin:4px 0 12px 0; font-size:28px;">Trading Journal</h1>
 
       <!-- FORM -->
@@ -52,15 +54,23 @@
           <button id="addBtn" style="flex:1; padding:12px; background:#022b57; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600;">
             Add Trade
           </button>
+          <button id="exportBtn" title="Download CSV (open in Excel)" style="padding:12px; background:#07a; color:#fff; border:none; border-radius:8px; cursor:pointer;">
+            Export CSV
+          </button>
           <button id="clearBtn" style="padding:12px; background:#f3f4f6; color:#111; border:1px solid #e6e6e6; border-radius:8px; cursor:pointer;">
-            Clear
+            Clear Form
           </button>
         </div>
       </div>
 
       <!-- TABLE -->
       <div style="margin-top:18px; background:#fff; border-radius:10px; padding:16px; box-shadow: 0 2px 8px rgba(15,25,40,0.04);">
-        <h2 style="margin:0 0 12px 0; font-size:18px;">Trades</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px;">
+          <h2 style="margin:0; font-size:18px;">Trades</h2>
+          <div style="text-align:right;">
+            <div id="summary" style="font-size:13px; color:#263244;"></div>
+          </div>
+        </div>
 
         <div style="overflow:auto;">
           <table id="tradeTable" style="width:100%; border-collapse:collapse; min-width:1200px;">
@@ -84,14 +94,27 @@
             <tbody style="background:#fff;"></tbody>
           </table>
         </div>
-      </div>
 
+        <!-- CHART & SUMMARY -->
+        <div style="margin-top:18px; display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap;">
+          <div style="flex:1; min-width:320px; background:#fbfdff; padding:12px; border-radius:10px; border:1px solid #eef6ff;">
+            <div style="font-weight:600; margin-bottom:8px;">Summary</div>
+            <div id="summaryDetails" style="font-size:14px; color:#243447;"></div>
+          </div>
+
+          <div style="flex:2; min-width:360px; background:#fff; padding:12px; border-radius:10px; border:1px solid #f1f5f9;">
+            <div style="font-weight:600; margin-bottom:8px;">Equity Curve (Cumulative Net P/L)</div>
+            <canvas id="equityChart" style="width:100%; height:240px;"></canvas>
+          </div>
+        </div>
+
+      </div>
     </div> <!-- outer card -->
   </div>
 
   <!-- MODAL (reason prompt) -->
   <div id="modalOverlay" style="display:none; position:fixed; inset:0; background:rgba(5,10,20,0.45); align-items:center; justify-content:center; z-index:9999;">
-    <div style="width:520px; max-width:92%; background:#fff; border-radius:10px; padding:18px; box-shadow:0 12px 40px rgba(10,20,40,0.4);">
+    <div style="width:580px; max-width:92%; background:#fff; border-radius:10px; padding:18px; box-shadow:0 12px 40px rgba(10,20,40,0.4);">
       <h3 id="modalTitle" style="margin:0 0 8px 0;">Provide reason</h3>
       <p id="modalText" style="margin:0 0 12px 0; color:#333; font-size:14px;">Reason required</p>
       <textarea id="modalReason" placeholder="Type reason here..." style="width:100%; height:110px; padding:10px; border:1px solid #e6eef9; border-radius:6px; font-size:14px;"></textarea>
@@ -129,7 +152,10 @@
   const reasonEl = $("reason");
   const addBtn = $("addBtn");
   const clearBtn = $("clearBtn");
+  const exportBtn = $("exportBtn");
   const tbody = document.querySelector("#tradeTable tbody");
+  const summaryDiv = $("summary");
+  const summaryDetailsDiv = $("summaryDetails");
 
   // modal elements
   const modalOverlay = $("modalOverlay");
@@ -139,8 +165,10 @@
   const modalCancel = $("modalCancel");
   const modalConfirm = $("modalConfirm");
 
+  // Chart.js reference
+  let equityChart = null;
+
   // temporary hold for pending trade and pending callback
-  let pendingTrade = null;
   let pendingResolve = null;
 
   // ---------------- formulas ----------------
@@ -191,7 +219,6 @@
       modalConfirm.onclick = () => {
         const val = modalReason.value.trim();
         if (!val) {
-          // require a reason
           modalReason.focus();
           modalReason.style.border = "1px solid #d9534f";
           setTimeout(()=> modalReason.style.border = "1px solid #e6eef9", 900);
@@ -209,6 +236,99 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
   }
 
+  function escapeHtml(str = "") {
+    return String(str).replace(/[&<>"']/g, ch => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    })[ch]);
+  }
+
+  // ---------------- summary & chart ----------------
+  function computeMetrics() {
+    let totalProfit = 0, totalLoss = 0, totalNet = 0, wins = 0;
+    const cum = [];
+    let cumulative = 0;
+    trades.forEach(t => {
+      const buy = toNum(t.buy);
+      const sell = toNum(t.sell);
+      const lots = toNum(t.lots);
+      const brokerage = toNum(t.brokerage);
+      const pg = sell - buy;
+      const pl = buy - sell;
+      const profit = pg > 0 ? pg * lots : 0;
+      const loss = pl > 0 ? pl * lots : 0;
+      const net = profit - loss - brokerage;
+
+      totalProfit += profit;
+      totalLoss += loss;
+      totalNet += net;
+      if (profit > 0) wins++;
+      cumulative += net;
+      cum.push(cumulative);
+    });
+
+    const winRate = trades.length ? (wins / trades.length) * 100 : 0;
+    return {
+      totalProfit, totalLoss, totalNet, winRate, cum
+    };
+  }
+
+  function renderSummary() {
+    const { totalProfit, totalLoss, totalNet, winRate } = computeMetrics();
+    summaryDiv.innerHTML = `Trades: ${trades.length} • Net P/L: ₹${format2(totalNet)}`;
+    summaryDetailsDiv.innerHTML = `
+      <div>Total Profit: ₹${format2(totalProfit)}</div>
+      <div>Total Loss: ₹${format2(totalLoss)}</div>
+      <div style="font-weight:600; margin-top:6px;">Net P/L: ₹${format2(totalNet)}</div>
+      <div style="margin-top:6px;">Win rate: ${format2(winRate)}%</div>
+    `;
+  }
+
+  function renderChart() {
+    const { cum } = computeMetrics();
+    const labels = trades.map((t,i) => `#${i+1}`);
+    const data = cum;
+
+    if (!equityChart) {
+      const ctx = document.getElementById('equityChart').getContext('2d');
+      equityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Cumulative Net P/L (₹)',
+            data,
+            fill: true,
+            tension: 0.25,
+            borderWidth: 2,
+            borderColor: '#0366d6',
+            backgroundColor: 'rgba(3,102,214,0.12)',
+            pointRadius: 3,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              grid: { display: false },
+            },
+            y: {
+              grid: { color: 'rgba(15,25,40,0.06)' },
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    } else {
+      equityChart.data.labels = labels;
+      equityChart.data.datasets[0].data = data;
+      equityChart.update();
+    }
+  }
+
+  // ---------------- table rendering ----------------
   function renderTable() {
     tbody.innerHTML = "";
     trades.forEach((t, i) => {
@@ -216,7 +336,6 @@
       const sell = toNum(t.sell);
       const lots = toNum(t.lots);
       const brokerage = toNum(t.brokerage);
-
       const pg = sell - buy;
       const pl = buy - sell;
       const profit = pg > 0 ? pg * lots : 0;
@@ -245,12 +364,8 @@
     });
 
     attachRowListeners();
-  }
-
-  function escapeHtml(str = "") {
-    return String(str).replace(/[&<>"']/g, ch => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    })[ch]);
+    renderSummary();
+    renderChart();
   }
 
   function attachRowListeners() {
@@ -279,19 +394,17 @@
         }
 
         trades[rowIndex][field] = txt;
-        // ensure remarks and trade fields stay strings
         if (!trades[rowIndex].remarks) trades[rowIndex].remarks = "";
         if (!trades[rowIndex].trade) trades[rowIndex].trade = "";
 
         saveTrades();
-        renderTable(); // rerender to recalc computed cols
+        renderTable(); // rerender to recalc computed cols and chart
       };
     });
   }
 
   // ---------------- business rules before add ----------------
   async function checkRulesBeforeAdd(nt) {
-    // nt is newTrade object (not yet saved)
     // 1) if trades length >= 15 -> ask reason for extra trades
     if (trades.length >= 15) {
       const reason = await askReason("Exceeded 15 trades", "You have reached 15 trades. Please provide justification to add more trades today.");
@@ -350,16 +463,14 @@
     // run validations & prompts
     const res = await checkRulesBeforeAdd(newTrade);
     if (!res.allowed) {
-      // user cancelled
-      return;
+      return; // user cancelled
     }
 
-    // push and save
     trades.push(res.trade || newTrade);
     saveTrades();
     renderTable();
 
-    // clear form but keep brokerage as default 0 for convenience
+    // clear form but keep brokerage as default
     tradeEl.value = "";
     buyEl.value = "";
     sellEl.value = "";
@@ -386,7 +497,55 @@
     netEl.value = "";
   });
 
-  // initial render
+  // ---------------- export CSV ----------------
+  exportBtn.addEventListener("click", () => {
+    if (!trades.length) {
+      alert("No trades to export.");
+      return;
+    }
+
+    const headers = ["SLNO","Trade","BUY","SELL","Points Gained","Points Lost","Lots Size","Profit","Loss","Brokerage","Net P/L","Remarks / Justification"];
+    const rows = trades.map((t, i) => {
+      const buy = toNum(t.buy);
+      const sell = toNum(t.sell);
+      const lots = toNum(t.lots);
+      const brokerage = toNum(t.brokerage);
+      const pg = sell - buy;
+      const pl = buy - sell;
+      const profit = pg > 0 ? pg * lots : 0;
+      const loss = pl > 0 ? pl * lots : 0;
+      const net = profit - loss - brokerage;
+
+      return [
+        i+1,
+        `"${(t.trade || "").replace(/"/g,'""')}"`,
+        format2(buy),
+        format2(sell),
+        format2(pg),
+        format2(pl),
+        format2(lots),
+        format2(profit),
+        format2(loss),
+        format2(brokerage),
+        format2(net),
+        `"${(t.remarks || "").replace(/"/g,'""')}"`
+      ].join(",");
+    });
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const filename = `trading-journal-${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  // ---------------- initial render ----------------
   renderTable();
   recalcForm();
 
@@ -400,13 +559,14 @@
     });
   });
 
-  // close modal on overlay click (optional)
+  // close modal on overlay click
   modalOverlay.addEventListener("click", (ev) => {
     if (ev.target === modalOverlay) {
       modalOverlay.style.display = "none";
       if (pendingResolve) { pendingResolve(false); pendingResolve = null; }
     }
   });
+
 </script>
 </body>
 </html>
